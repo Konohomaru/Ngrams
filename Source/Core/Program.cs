@@ -22,11 +22,12 @@ namespace Core
 			var tSource = new CancellationTokenSource();
 			var stopwatch = new Stopwatch();
 			var analyzer = new NgramAnalyzer();
+			var loader = new LoadDrawer().Start();
 
 			RunCancelationHeanlerAsync(tSource);
 
-			analyzer.IterationComplete += IterationCompletedHandler;
-			analyzer.SearchCaneled += SearchCanceledHandler;
+			analyzer.IterationComplete += loader.IterationCompletedHandler;
+			analyzer.SearchCaneled += loader.SearchCanceledHandler;
 
 			stopwatch.Start();
 			var mostFresuqnt = await analyzer
@@ -39,6 +40,7 @@ namespace Core
 					tSource.Token);
 			stopwatch.Stop();
 
+			loader.Stop();
 			WritePairs(mostFresuqnt);
 			Console.WriteLine($"Elapsed milliseconds: {stopwatch.ElapsedMilliseconds}");
 		}
@@ -51,18 +53,6 @@ namespace Core
 					tSource.Cancel(false);
 				},
 				CancellationToken.None);
-		}
-
-		static void IterationCompletedHandler(NgramAnalyzer source, NgramAnalyzerEventArgs args)
-		{
-			Console.SetCursorPosition(0, 0);
-			Console.WriteLine($"{args.CompletedBlocks}/{args.BlockCount}" + new string(' ', 10));
-		}
-
-		static void SearchCanceledHandler(NgramAnalyzer source, NgramAnalyzerEventArgs args)
-		{
-			Console.SetCursorPosition(0, 0);
-			Console.WriteLine($"Search canceled on {args.CanceledOnBlock} of {args.BlockCount}");
 		}
 
 		static void WritePairs(KeyValuePair<string, int>[] pairs)
